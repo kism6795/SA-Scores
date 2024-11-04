@@ -28,21 +28,29 @@ nSubs = 35;
 nTrials = 12;
 
 %% Calculate Adjusted Scores
-for i = 5:nSubs
-    if i == 13
-        continue;
-    end
+for s = 5:nSubs
     for j = 1:nTrials
         for k = 1:18
-            level = reportCards{i,j}.level(k); % find which SA Level QID(k) corresponds to
+            level = reportCards{s,j}.level(k); % find which SA Level QID(k) corresponds to
             if level>0 % if data exists here
-                correctness = reportCards{i,j}.correct(k); % find whether subject i on trial j got question k correct
+                % find whether subject i on trial j got question k correct
+                correctness = reportCards{s,j}.correct(k); 
                 if correctness == 1
-                    adjustment = QIDs.adjustment(QIDs.QID == reportCards{i,j}.QID(k)); % find the correct adjustment for each QID(k)
+                    % find the correct adjustment for each QID(k)
+                    adjustment = QIDs.adjustment( ...
+                        QIDs.QID == reportCards{s,j}.QID(k) ...
+                        ); 
                 elseif correctness == 0
-                    adjustment = -QIDs.prctCorrect(QIDs.QID == reportCards{i,j}.QID(k)); % find the correct adjustment for each QID(k)
+                    % find the correct adjustment for each QID(k)
+                    adjustment = -QIDs.prctCorrect( ...
+                        QIDs.QID == reportCards{s,j}.QID(k) ...
+                        ); 
+                 elseif correctness == -1
+                    % when no report card exists
+                    adjustment = NaN;
                 end
-                sa_scores2(i,j,level) = sa_scores2(i,j,level) + adjustment; % add adjusted score to sa_scores
+                % add adjusted score to sa_scores
+                sa_scores2(s,j,level) = sa_scores2(s,j,level) + adjustment; 
             end
         end
     end
@@ -54,27 +62,24 @@ end
 %% Set zeros to nans
 raw_sa_scores = sa_scores;
 adj_sa_scores = sa_scores2;
-for s = 1:nSubs
-    no_sa_count = 0; % how many no-sa-assessments per subject
-    for t = 1:nTrials
-        sat = 0; % if total SA is zero, assume no Assessment was presented
-        for l = 1:3
-            if ~isnan(sa_scores(s,t,l))
-                sat = sat + sa_scores(s,t,l);
-            end
-        end
-        if sat == 0 % if no SA Assessment is presented on this trial
-            no_sa_count = no_sa_count + 1;
-            if no_sa_count > 2 && s>5 && s~=10 && s~=13 && s~=24 && s~=25
-                warning('Subject %d appears to have %d trials w/o an SA Asssessment',s,no_sa_count);
-            end
-            for l = 1:3
-                raw_sa_scores(s,t,l) = NaN;
-                adj_sa_scores(s,t,l) = NaN;
-            end
-        end
-    end
-end
+% for s = 1:nSubs
+%     no_sa_count = 0; % how many no-sa-assessments per subject
+%     for t = 1:nTrials
+%         sat = sum(sa_scores(s,t,:),'omitmissing');
+% 
+%         if sat == 0 % if no SA Assessment is presented on this trial
+%             no_sa_count = no_sa_count + 1;
+%             if no_sa_count > 2 && s>5 && s~=10 && s~=13 && s~=24 && s~=25
+%                 warning('Subject %d appears to have %d trials w/o an SA Asssessment',s,no_sa_count);
+%             end
+%             % warning('Subject %d appears to have %d trials w/o an SA Asssessment',s,no_sa_count);
+%             for l = 1:3
+%                 raw_sa_scores(s,t,l) = NaN;
+%                 adj_sa_scores(s,t,l) = NaN;
+%             end
+%         end
+%     end
+% end
 
 save(fullfile(data_path,'raw_sa_scores.mat'),'raw_sa_scores');
 save(fullfile(data_path,'adj_sa_scores.mat'),'adj_sa_scores')

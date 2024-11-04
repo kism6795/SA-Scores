@@ -46,7 +46,7 @@ clear QID Asked Correct;
 
 for s = 5:nSubs
     if s == 13
-        continue;
+        % continue;
     end
     % Open the Report Card & read line 1
     data_path = fullfile(data_folder,['Subject-' subjString{s}]);

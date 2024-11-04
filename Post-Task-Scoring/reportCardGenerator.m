@@ -4,6 +4,8 @@
 
 % saves sa_scores to outfile in data_path
 % index: sa_scores(subject #, trial #, SA level)
+clear;
+clc;
 
 outfile = 'allSAscores.mat';
 
@@ -16,27 +18,48 @@ subjString = {'001-0922','002-0923','003-0926','004-1025','005-1110',...
               '026-0717','027-0724','028-0729','029-0730','030-0802',...
               '031-0806','032-0807','033-0810','034-0823','035-0916'};
 nSubs = length(subjString);
-nTrials = 12*ones(1,nSubs);
+nTrials = 12;
+nT = nTrials*ones(1,nSubs);
 response_file = "SA Assessment.csv";
+response_path = "C:\Users\kiera\Documents\Kieran\CU\Research\SA\" + ...
+    "Subject Data\Questionnaires\";
+response_file = "All_SA_Assessments_Sorted.xlsx";
+notes_file = "All_Subject_Data_Notes.xlsx";
+
 % sa_scores = nan(nSubs,nTrials(1),3);
-nTrials(5) = 10; % Subject 5 has two trials on a separate recording
-nTrials(10) = 9; % Subject 10 dropped out after 9 trials
-nTrials(24) = 11; % Subject 24 skipped the first trial
-nTrials(25) = 8; % Subject 25 lost first 4 trials to a BSOD
+% nTrials(5) = 10; % Subject 5 has two trials on a separate recording
+nT(10) = 9; % Subject 10 dropped out after 9 trials
+nT(24) = 11; % Subject 24 skipped the first trial
+% nTrials(25) = 8; % Subject 25 lost first 4 trials to a BSOD
+
+id = 'MATLAB:table:ModifiedAndSavedVarnames';
+warning('off',id)
+response_data = readtable(fullfile(response_path,response_file));
+data_notes = readtable(fullfile(response_path,notes_file));
+warning('on',id)
+
+sa_scores = nan(nSubs,nTrials,3);
 
 for s = 5:nSubs
+    % Find subject notes
+    subj_notes = data_notes(data_notes.ID == s,:);
+
     fprintf('Scoring subject %d / %d.\n', s, nSubs);
-    if s == 13
-        continue;
-    end
+
+    % Count # of trials missing SA
     no_sa_count = 0;
+
+    % Open ReportCard file to write scores to  
     subject_folder = ['Subject-' subjString{s}];
     fid = fopen(fullfile(data_path,subject_folder,'ReportCard.txt'),'w');
-    date_time = findDateTime(fullfile(data_path,subject_folder));
-    for i = 1:nTrials(s)
+
+    for i = 1:nTrials
+        % Print trial # to file
 	    fprintf(fid,'Trial %d:\n', i);
-        sa_scores(s,i,:) = SA_Scorer_Post_Test(i,data_path, subject_folder, ...
-            response_file, date_time, fid, nTrials(s));
+
+        % Compute SA Scores & Print to file
+        sa_scores(s,i,:) = SA_Scorer_Post_Test(i, data_path, subject_folder, ...
+            response_data, subj_notes, fid, s);
 
         % if total score is zero, set to NaN (these trials had no SAQ)
         if sum(sa_scores(s,i,:)) == 0
@@ -44,25 +67,14 @@ for s = 5:nSubs
             no_sa_count = no_sa_count + 1;
         end
     end
+
     if no_sa_count > 2
         warning(['More than two trials had Total SA score = 0 for ' ...
                 'subject %d. Double check sa_assessment.csv and hard' ...
-                'code a solutoin.'],s)
+                'code a solution.'],s)
     end
     fclose(fid);
 end
 
 filename = fullfile(data_path, 'allSAscores.mat');
 save(filename, 'sa_scores')
-
-%% fxns
-function date_time = findDateTime(subject_folder)
-    x = dir(subject_folder);
-    for k=1:length(x)
-        if strfind(x(k).name, 'RATE')
-            temp = extractBetween(x(k).name, 'RATE_','.txt');
-            break
-        end
-    end
-    date_time = temp{1};
-end
