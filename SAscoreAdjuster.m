@@ -139,8 +139,10 @@ grid on;
 
 
 %% Adjust trial Numbers
-% addpath('C:\Users\kiera\Documents\Kieran\CU\Research\SA\Analysis\psychophys\AnalysisPipeline');
-[adj_sa_trial_scores, raw_sa_trial_scores] = adjust_SA_trial_numbers( ...
-    raw_sa_scores, adj_sa_scores, nSubs, data_path ...
-        );
-% rmpath('C:\Users\kiera\Documents\Kieran\CU\Research\SA\Analysis\psychophys\AnalysisPipeline');
+% no longer necessary: scores are on appropriate trials from the beginning
+adj_sa_trial_scores = adj_sa_scores;
+raw_sa_trial_scores = raw_sa_scores;
+
+% save aligned data to data_path
+save(fullfile(data_path,'adj_sa_trial_scores.mat'),'adj_sa_trial_scores');
+save(fullfile(data_path,'raw_sa_trial_scores.mat'),'raw_sa_trial_scores');

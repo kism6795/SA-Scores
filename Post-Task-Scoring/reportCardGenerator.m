@@ -20,18 +20,14 @@ subjString = {'001-0922','002-0923','003-0926','004-1025','005-1110',...
 nSubs = length(subjString);
 nTrials = 12;
 nT = nTrials*ones(1,nSubs);
-response_file = "SA Assessment.csv";
+
+% Read in subject notes & SA Responses
 response_path = "C:\Users\kiera\Documents\Kieran\CU\Research\SA\" + ...
     "Subject Data\Questionnaires\";
 response_file = "All_SA_Assessments_Sorted.xlsx";
 notes_file = "All_Subject_Data_Notes.xlsx";
 
-% sa_scores = nan(nSubs,nTrials(1),3);
-% nTrials(5) = 10; % Subject 5 has two trials on a separate recording
-nT(10) = 9; % Subject 10 dropped out after 9 trials
-nT(24) = 11; % Subject 24 skipped the first trial
-% nTrials(25) = 8; % Subject 25 lost first 4 trials to a BSOD
-
+% Import notes & responses without matlab warning
 id = 'MATLAB:table:ModifiedAndSavedVarnames';
 warning('off',id)
 response_data = readtable(fullfile(response_path,response_file));
